@@ -126,7 +126,7 @@ HOLMES_LIVE_API=http://172.16.119.92:30395/api/chat npm test -- tests/live-api.t
 ## 目录
 
 ```text
-holmes-chat-web/
+SRE-Copilot/
 ├── src/
 │   ├── api/                 # holmes.ts 请求生命周期、protocol.ts 协议适配、sse.ts 解析
 │   ├── components/chat/     # 会话侧栏、消息列表、单轮消息、Markdown、输入框
