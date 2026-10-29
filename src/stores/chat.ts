@@ -1,16 +1,33 @@
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { appConfig } from '../config'
 import { streamChat } from '../api/holmes'
 import { buildChatRequest } from '../api/protocol'
 import type { ChatTurn, Conversation } from '../types/chat'
 
 export const useChatStore = defineStore('chat', () => {
-  const conversations = ref<Conversation[]>([])
-  const activeId = ref('')
+  const STORAGE_KEY = 'holmes-chat-conversations-v1'
+  function restore() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (!saved) return { conversations: [] as Conversation[], activeId: '' }
+      const data = JSON.parse(saved) as { conversations?: Conversation[]; activeId?: string }
+      const conversations = Array.isArray(data.conversations) ? data.conversations : []
+      return { conversations, activeId: conversations.some(chat => chat.id === data.activeId) ? data.activeId! : conversations[0]?.id ?? '' }
+    } catch {
+      return { conversations: [] as Conversation[], activeId: '' }
+    }
+  }
+  const savedState = restore()
+  const conversations = ref<Conversation[]>(savedState.conversations)
+  const activeId = ref(savedState.activeId)
   const busy = ref(false)
   const current = computed(() => conversations.value.find(chat => chat.id === activeId.value))
   let running: { controller: AbortController; turn: ChatTurn } | undefined
+
+  watch([conversations, activeId], () => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ conversations: conversations.value, activeId: activeId.value })) } catch { /* 浏览器存储不可用或空间不足时继续正常使用。 */ }
+  }, { deep: true })
 
   function stop() {
     if (!running) return
@@ -97,6 +114,6 @@ export const useChatStore = defineStore('chat', () => {
     chat.history = JSON.parse(JSON.stringify(turn.historyBefore))
     await execute(chat, turn)
   }
-  newConversation()
+  if (!conversations.value.length) newConversation()
   return { conversations, activeId, current, busy, send, stop, regenerate, newConversation, select, clearCurrent, remove }
 })
