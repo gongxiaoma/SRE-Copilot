@@ -1,4 +1,4 @@
-# SRE-Copilot AI运维助手
+# SRE-Copilot AI 运维助手
 
 Vue 3 + Vite + TypeScript + Pinia + Element Plus，中文 ChatGPT 风格界面。
 在现有项目骨架上实现，浏览器仅使用原生 fetch + ReadableStream 对接 HTTP API，无 WebSocket、EventSource 或伪造的打字效果。
